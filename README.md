@@ -1,2 +1,5 @@
 # TheWatcher
-Folder Watching Program wrapped around the Watchdog python library
+A Folder Watching Program, built upon
+the watchdog python library.
+
+By: Kumaran (atv.kumar@gmail.com)
