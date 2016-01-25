@@ -105,3 +105,10 @@ Temporary Items
 
 # sftp configuration file
 sftp-config.json
+
+### Project Specific ###
+# Folders to ignore
+/log
+/images
+/Notes
+/dump
