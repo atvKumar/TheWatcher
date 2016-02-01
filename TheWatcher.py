@@ -11,7 +11,8 @@ from os import path
 from os.path import expanduser
 from wx.lib.wordwrap import wordwrap
 from watchdog.observers import Observer
-from watchdog.events import LoggingEventHandler
+# from watchdog.events import LoggingEventHandler
+from watchdog.events import FileSystemEventHandler
 
 
 __author__ = "Kumaran S/O Murugun"
@@ -24,6 +25,19 @@ IS_WIN = wx.Platform == "__WXMSW__"
 # This creates a new Event class and a EVT binder function
 (UpdateLogEvent, EVT_UPDATE_LOG) = wx.lib.newevent.NewEvent()
 
+
+class LogEventHandler(FileSystemEventHandler):
+    def __init__(self, win):
+        self.win = win
+
+    def on_created(self, event):
+        super(LogEventHandler, self).on_created(event)
+
+        what= 'Directory' if event.is_directory else 'File'
+        msg = UpdateLogEvent(logmsg="%s ... created %s" % (what, event.src_path))
+        wx.PostEvent(self.win, msg)
+
+
 ################################################################################
 ## Class Watcher
 ################################################################################
@@ -32,29 +46,37 @@ class Watcher:
     def __init__(self, win, watchpath):
         self.win = win
         self.path = watchpath
+        self.event_handler = LogEventHandler(self.win)
+        self.observer = Observer()
+        self.observer.schedule(self.event_handler, self.path, recursive=True)
+        # print "Watcher created ", self.win, self.path
 
 
     def Start(self):
         self.keepGoing = self.running = True
-        thread.start_new_thread(self.Run, ())
+        thread.start_new_thread(self.observer.start, ())
+        # self.observer.start()
+        print "Thread Started..."
 
 
     def Stop(self):
         self.keepGoing = False
+        self.running = False
 
 
     def IsRunning(self):
         return self.running
+        self.observer.stop()
 
 
-    def Run(self):
-        while self.keepGoing:
-            event = UpdateLogEvent(logmsg="Watching %s ... %d" % (self.path, random.randint(1, 10)))
-            wx.PostEvent(self.win, event)
+    def Run(self): pass
+        # while self.keepGoing:
+        #     event = UpdateLogEvent(logmsg="Watching %s ... %d" % (self.path, random.randint(1, 10)))
+        #     wx.PostEvent(self.win, event)
 
-            sleeptime = (random.random() * 2) + 0.5
-            time.sleep(sleeptime/4)
-        self.running = False
+        #     sleeptime = (random.random() * 2) + 0.5
+        #     time.sleep(sleeptime/4)
+        # self.running = False
 
 ################################################################################
 ## Class MyLog
@@ -523,8 +545,8 @@ class mainFrame(wx.Frame):
         self.lstPath.Bind(dv.EVT_DATAVIEW_COLUMN_HEADER_CLICK, 
             self.remDirectory)
         self.btnAdd.Bind(wx.EVT_BUTTON, self.quickAdd)
-        self.Bind(wx.EVT_TOGGLEBUTTON, self.run, self.btnRun)
-
+        # self.Bind(wx.EVT_TOGGLEBUTTON, self.run, self.btnRun)
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.run_watchdog, self.btnRun)
         self.Bind(EVT_UPDATE_LOG, self.OnUpdate)        
 
 
@@ -637,29 +659,61 @@ class mainFrame(wx.Frame):
         event.GetDialog().Destroy()
 
 
-    def run(self, event):
-        # print event.GetId()
-        # print event.IsChecked()
-        self.threads.append(Watcher(self, "Thread1"))
-        # self.threads.append(Watcher(self, "Thread2"))
-        # self.threads.append(Watcher(self, "Thread3"))
-        # self.threads.append(Watcher(self, "Thread4"))
-        # self.threads.append(Watcher(self, "Thread5"))
-        # self.threads.append(Watcher(self, "Thread6"))
-        # self.threads.append(Watcher(self, "Thread7"))
-        # self.threads.append(Watcher(self, "Thread8"))
-        if event.IsChecked() is True:
-            # Run Code here
-            print "Running..."
-            # self.isrunning = True
+    # def run(self, event):
+    #     # print event.GetId()
+    #     # print event.IsChecked()
+    #     self.threads.append(Watcher(self, "Thread1"))
+    #     # self.threads.append(Watcher(self, "Thread2"))
+    #     # self.threads.append(Watcher(self, "Thread3"))
+    #     # self.threads.append(Watcher(self, "Thread4"))
+    #     # self.threads.append(Watcher(self, "Thread5"))
+    #     # self.threads.append(Watcher(self, "Thread6"))
+    #     # self.threads.append(Watcher(self, "Thread7"))
+    #     # self.threads.append(Watcher(self, "Thread8"))
+    #     if event.IsChecked() is True:
+    #         # Run Code here
+    #         print "Running..."
+    #         # self.isrunning = True
+    #         for t in self.threads:
+    #             t.Start()
+    #     elif event.IsChecked() is False:
+    #         # Stop Code here
+    #         print "Stopped..."
+    #         # self.isrunning = False
+    #         for t in self.threads:
+    #             t.Stop()
+
+
+    def getPathListData(self):
+        data = []
+        lsCtrlStore = self.lstPath.GetStore()
+        rowCount = lsCtrlStore.GetCount()
+        # print "Total Rows =", rowCount
+        for i in range(0, rowCount):
+            row = []
+            # print "Row %d ..." % i
+            row.append(lsCtrlStore.GetValueByRow(i, 1))
+            row.append(lsCtrlStore.GetValueByRow(i, 2))
+            row.append(lsCtrlStore.GetValueByRow(i, 3))
+            row.append(lsCtrlStore.GetValueByRow(i, 4))
+            row.append(lsCtrlStore.GetValueByRow(i, 5))
+            data.append(row)
+        return data
+
+
+    def run_watchdog(self, event):
+        if event.IsChecked():
+            # Get the number of entries in Path List
+            lst = self.getPathListData()
+            for i in range(0, len(lst)):
+                # print lst[i][0]
+                self.threads.append(Watcher(self, lst[i][0]))
             for t in self.threads:
                 t.Start()
-        elif event.IsChecked() is False:
-            # Stop Code here
-            print "Stopped..."
-            # self.isrunning = False
+        else:
             for t in self.threads:
                 t.Stop()
+            print "Stopped..."
     
 
 if __name__ == '__main__':
