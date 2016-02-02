@@ -12,8 +12,8 @@ from os.path import expanduser
 from wx.lib.wordwrap import wordwrap
 from watchdog.observers import Observer
 # from watchdog.events import LoggingEventHandler
-from watchdog.events import FileSystemEventHandler
-
+# from watchdog.events import FileSystemEventHandler
+from watchdog.events import PatternMatchingEventHandler
 
 __author__ = "Kumaran S/O Murugun"
 __application__ = "The Watcher"
@@ -26,16 +26,51 @@ IS_WIN = wx.Platform == "__WXMSW__"
 (UpdateLogEvent, EVT_UPDATE_LOG) = wx.lib.newevent.NewEvent()
 
 
-class LogEventHandler(FileSystemEventHandler):
-    def __init__(self, win):
+class wxLogEventHandler(PatternMatchingEventHandler):
+    def __init__(self, win, patterns=None, ignore_patterns=None, 
+                 ignore_directories=False, case_sensitive=False,
+                 create=True, modify=True, delete=False, rename=False):
+        self._case_sensitive = case_sensitive
+        self._ignore_patterns = ignore_patterns
+        self._patterns = patterns
+        self._ignore_directories = ignore_directories
         self.win = win
+        self.evt_onCreated = create
+        self.evt_onModified = modify
+        self.evt_onDeleted = delete
+        self.evt_onRenamed = rename
+
+    def process(self, event):
+        # print event.src_path, ">", event.event_type, type(event)
+        what = 'Directory' if event.is_directory else 'File'
+        msg=None
+        if event.event_type == 'created' and self.evt_onCreated:
+            # print what, "Created! |", event.src_path
+            msg = UpdateLogEvent(logmsg="Created! | %s" % event.src_path)
+        elif event.event_type == 'modified' and self.evt_onModified:
+            # print what, "Modified! |", event.src_path
+            msg = UpdateLogEvent(logmsg="Modified! | %s" % event.src_path)
+        elif event.event_type == 'deleted' and self.evt_onDeleted:
+            # print what, "Deleted! |", event.src_path
+            msg = UpdateLogEvent(logmsg="Deleted! | %s" % event.src_path)
+        elif event.event_type == 'moved' and self.evt_onRenamed:
+            # print what, "Moved! |", event.src_path, event.dest_path
+            msg = UpdateLogEvent(logmsg="Moved! | %s to %s" % 
+                                 (event.src_path, event.dest_path))
+        if msg != None:
+            wx.PostEvent(self.win, msg)
+
+    def on_moved(self, event):
+        self.process(event)
 
     def on_created(self, event):
-        super(LogEventHandler, self).on_created(event)
+        self.process(event)
 
-        what= 'Directory' if event.is_directory else 'File'
-        msg = UpdateLogEvent(logmsg="%s ... created %s" % (what, event.src_path))
-        wx.PostEvent(self.win, msg)
+    def on_deleted(self, event):
+        self.process(event)
+
+    def on_modified(self, event):
+        self.process(event)
 
 
 ################################################################################
@@ -43,10 +78,14 @@ class LogEventHandler(FileSystemEventHandler):
 ################################################################################
 
 class Watcher:
-    def __init__(self, win, watchpath):
+    def __init__(self, win, watchpath, patterns=None, ignore_patterns=None, 
+                 ignore_directories=False, case_sensitive=False,
+                 create=True, modify=True, delete=False, rename=False):
         self.win = win
         self.path = watchpath
-        self.event_handler = LogEventHandler(self.win)
+        self.event_handler = wxLogEventHandler(self.win, patterns, 
+                                ignore_patterns, ignore_directories, 
+                                case_sensitive, create, modify, delete, rename)
         self.observer = Observer()
         self.observer.schedule(self.event_handler, self.path, recursive=True)
         # print "Watcher created ", self.win, self.path
