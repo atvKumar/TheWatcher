@@ -80,14 +80,15 @@ class wxLogEventHandler(PatternMatchingEventHandler):
 class Watcher:
     def __init__(self, win, watchpath, patterns=None, ignore_patterns=None, 
                  ignore_directories=False, case_sensitive=False,
-                 create=True, modify=True, delete=False, rename=False):
+                 create=True, modify=True, delete=False, rename=False, 
+                 subDir=True):
         self.win = win
         self.path = watchpath
         self.event_handler = wxLogEventHandler(self.win, patterns, 
                                 ignore_patterns, ignore_directories, 
                                 case_sensitive, create, modify, delete, rename)
         self.observer = Observer()
-        self.observer.schedule(self.event_handler, self.path, recursive=True)
+        self.observer.schedule(self.event_handler, self.path, recursive=subDir)
         # print "Watcher created ", self.win, self.path
 
 
@@ -726,18 +727,39 @@ class mainFrame(wx.Frame):
     def getPathListData(self):
         data = []
         lsCtrlStore = self.lstPath.GetStore()
+        colCount = len(self.lstPath.GetColumns()) - 1
         rowCount = lsCtrlStore.GetCount()
         # print "Total Rows =", rowCount
         for i in range(0, rowCount):
             row = []
             # print "Row %d ..." % i
-            row.append(lsCtrlStore.GetValueByRow(i, 1))
-            row.append(lsCtrlStore.GetValueByRow(i, 2))
-            row.append(lsCtrlStore.GetValueByRow(i, 3))
-            row.append(lsCtrlStore.GetValueByRow(i, 4))
-            row.append(lsCtrlStore.GetValueByRow(i, 5))
+            for colNum in range(1, colCount + 1):
+                row.append(lsCtrlStore.GetValueByRow(i, colNum))
+            # row.append(lsCtrlStore.GetValueByRow(i, 2))
+            # row.append(lsCtrlStore.GetValueByRow(i, 3))
+            # row.append(lsCtrlStore.GetValueByRow(i, 4))
+            # row.append(lsCtrlStore.GetValueByRow(i, 5))
             data.append(row)
         return data
+
+
+    def processRowData(self, rowData):
+        watch_path = rowData[0]
+        patterns = None
+        if rowData[4] != None:
+            ignore_patterns = str(rowData[4]).split(', ') if ',' in rowData[4] \
+                              else None
+        else:
+            ignore_patterns = rowData[4]
+        ignore_directories = True if rowData[3] == 'Files Only' else False
+        case_sensitive = False
+        create = True if 'New Files' in rowData[1] else False
+        modify = True if 'Modifications' in rowData[1] else False
+        delete = True if 'Deletions' in rowData[1] else False
+        rename = True if 'Renames' in rowData[1] else False
+        subDir = rowData[2]
+        return [watch_path, patterns, ignore_patterns, ignore_directories, 
+                case_sensitive, create, modify, delete, rename, subDir]
 
 
     def run_watchdog(self, event):
@@ -746,12 +768,14 @@ class mainFrame(wx.Frame):
             lst = self.getPathListData()
             for i in range(0, len(lst)):
                 # print lst[i][0]
-                self.threads.append(Watcher(self, lst[i][0]))
+                rowData = self.processRowData(lst[i])
+                self.threads.append(Watcher(self, *rowData))
             for t in self.threads:
                 t.Start()
         else:
             for t in self.threads:
                 t.Stop()
+                self.threads = []  # Reset the threads to none.
             print "Stopped..."
     
 
