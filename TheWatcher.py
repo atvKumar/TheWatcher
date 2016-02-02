@@ -247,7 +247,7 @@ class addDirectory (wx.Dialog):
         self.rbDirectories = wx.RadioButton(self, wx.ID_ANY, 
             u"Directories Only", wx.DefaultPosition, wx.DefaultSize, 0)
         rowSizer_ad.Add(self.rbDirectories, 0, wx.ALL, 5)
-        
+        self.rbDirectories.Disable() # Disabled
         
         colGrpSizer_b.Add(rowSizer_ad, 0, wx.EXPAND, 5)
         
@@ -257,7 +257,7 @@ class addDirectory (wx.Dialog):
         colGrpSizer_c = wx.StaticBoxSizer(
             wx.StaticBox(self, wx.ID_ANY, u"Filters"), wx.VERTICAL)
         
-        rowSizer_ae = wx.FlexGridSizer(0, 3, 0, 0)
+        rowSizer_ae = wx.FlexGridSizer(0, 4, 0, 0)
         rowSizer_ae.AddGrowableCol(1)
         rowSizer_ae.SetFlexibleDirection(wx.BOTH)
         rowSizer_ae.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
@@ -271,27 +271,35 @@ class addDirectory (wx.Dialog):
             wx.DefaultPosition, wx.DefaultSize, 0)
         rowSizer_ae.Add( self.txtPattern, 0, wx.ALL|wx.EXPAND, 5)
         
-        self.btnAddPattern = wx.Button(self, wx.ID_ANY, u"Add", 
-            wx.DefaultPosition, wx.Size( 50,-1 ), 0)
-        rowSizer_ae.Add(self.btnAddPattern, 0, wx.ALL, 5)
-        
+        self.btnIgnorePattern = wx.Button(self, wx.ID_ANY, u"Ignore", 
+            wx.DefaultPosition, wx.Size( 70,-1 ), 0)
+        rowSizer_ae.Add(self.btnIgnorePattern, 0, wx.ALL, 5)
+
+        self.btnWatchPattern = wx.Button(self, wx.ID_ANY, u"Watch", 
+            wx.DefaultPosition, wx.Size( 70,-1 ), 0)
+        rowSizer_ae.Add(self.btnWatchPattern, 0, wx.ALL, 5)
+
         
         colGrpSizer_c.Add(rowSizer_ae, 0, wx.EXPAND, 5)
         
-        rowSizer_af = wx.FlexGridSizer(0, 1, 0, 0)
+        rowSizer_af = wx.FlexGridSizer(1, 0, 0, 0)
         rowSizer_af.AddGrowableCol(0)
         rowSizer_af.SetFlexibleDirection(wx.BOTH)
         rowSizer_af.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
         
-        self.lblExPatterns = wx.StaticText(self, wx.ID_ANY, u"Exclude Patterns", 
-            wx.DefaultPosition, wx.DefaultSize, 0)
-        self.lblExPatterns.Wrap(-1)
-        rowSizer_af.Add(self.lblExPatterns, 0, wx.ALL, 5)
+        # self.lblExPatterns = wx.StaticText(self, wx.ID_ANY, u"Exclude Patterns", 
+        #     wx.DefaultPosition, wx.DefaultSize, 0)
+        # self.lblExPatterns.Wrap(-1)
+        # rowSizer_af.Add(self.lblExPatterns, 0, wx.ALL, 5)
         
         lbExPatternsChoices = []
         self.lbExPatterns = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, 
-            wx.Size(-1,120), lbExPatternsChoices, wx.LB_NEEDED_SB)
+            wx.Size(-1,140), lbExPatternsChoices, wx.LB_NEEDED_SB)
         rowSizer_af.Add(self.lbExPatterns, 1, wx.ALL | wx.EXPAND, 5)
+        
+        self.lbInPatterns = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, 
+            wx.Size(220,140), lbExPatternsChoices, wx.LB_NEEDED_SB)
+        rowSizer_af.Add(self.lbInPatterns, 1, wx.ALL | wx.EXPAND, 5)
         
         
         colGrpSizer_c.Add(rowSizer_af, 0, wx.EXPAND, 5)
@@ -329,7 +337,7 @@ class addDirectory (wx.Dialog):
         # self.rbAll.Bind(wx.EVT_RADIOBUTTON, self.onTypes)
         # self.rbFiles.Bind(wx.EVT_RADIOBUTTON, self.onTypes)
         # self.rbDirectories.Bind(wx.EVT_RADIOBUTTON, self.onTypes)
-        self.btnAddPattern.Bind(wx.EVT_BUTTON, self.addPattern)
+        self.btnIgnorePattern.Bind(wx.EVT_BUTTON, self.addPattern)
         self.lbExPatterns.Bind(wx.EVT_LISTBOX_DCLICK, self.remPattern)
         self.btnSave.Bind(wx.EVT_BUTTON, self.save)
         self.btnCancel.Bind(wx.EVT_BUTTON, self.cancel)
