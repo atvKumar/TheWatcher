@@ -293,13 +293,13 @@ class addDirectory (wx.Dialog):
         # rowSizer_af.Add(self.lblExPatterns, 0, wx.ALL, 5)
         
         lbExPatternsChoices = []
-        self.lbExPatterns = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, 
+        self.lbIgnorePatterns = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, 
             wx.Size(-1,140), lbExPatternsChoices, wx.LB_NEEDED_SB)
-        rowSizer_af.Add(self.lbExPatterns, 1, wx.ALL | wx.EXPAND, 5)
+        rowSizer_af.Add(self.lbIgnorePatterns, 1, wx.ALL | wx.EXPAND, 5)
         
-        self.lbInPatterns = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, 
+        self.lbWatchPatterns = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, 
             wx.Size(220,140), lbExPatternsChoices, wx.LB_NEEDED_SB)
-        rowSizer_af.Add(self.lbInPatterns, 1, wx.ALL | wx.EXPAND, 5)
+        rowSizer_af.Add(self.lbWatchPatterns, 1, wx.ALL | wx.EXPAND, 5)
         
         
         colGrpSizer_c.Add(rowSizer_af, 0, wx.EXPAND, 5)
@@ -337,8 +337,10 @@ class addDirectory (wx.Dialog):
         # self.rbAll.Bind(wx.EVT_RADIOBUTTON, self.onTypes)
         # self.rbFiles.Bind(wx.EVT_RADIOBUTTON, self.onTypes)
         # self.rbDirectories.Bind(wx.EVT_RADIOBUTTON, self.onTypes)
-        self.btnIgnorePattern.Bind(wx.EVT_BUTTON, self.addPattern)
-        self.lbExPatterns.Bind(wx.EVT_LISTBOX_DCLICK, self.remPattern)
+        self.btnIgnorePattern.Bind(wx.EVT_BUTTON, self.addIgnorePattern)
+        self.lbIgnorePatterns.Bind(wx.EVT_LISTBOX_DCLICK, self.remIgnorePattern)
+        self.btnWatchPattern.Bind(wx.EVT_BUTTON, self.addWatchPattern)
+        self.lbWatchPatterns.Bind(wx.EVT_LISTBOX_DCLICK, self.remWatchPattern)
         self.btnSave.Bind(wx.EVT_BUTTON, self.save)
         self.btnCancel.Bind(wx.EVT_BUTTON, self.cancel)
     
@@ -352,18 +354,33 @@ class addDirectory (wx.Dialog):
     # def onTypes(self, event):
     #     event.Skip()
 
-    def addPattern(self, event):
+    def addIgnorePattern(self, event):
         pattern = self.txtPattern.GetValue()
         if pattern != "":
-            listBoxCount = self.lbExPatterns.GetCount()
-            self.lbExPatterns.InsertItems([pattern], listBoxCount)
+            listBoxCount = self.lbIgnorePatterns.GetCount()
+            self.lbIgnorePatterns.InsertItems([pattern], listBoxCount)
             self.txtPattern.Clear()
         event.Skip()
     
 
-    def remPattern(self, event):
-        self.txtPattern.SetValue(self.lbExPatterns.GetStringSelection())
-        self.lbExPatterns.Delete(self.lbExPatterns.GetSelection())
+    def remIgnorePattern(self, event):
+        self.txtPattern.SetValue(self.lbIgnorePatterns.GetStringSelection())
+        self.lbIgnorePatterns.Delete(self.lbIgnorePatterns.GetSelection())
+        event.Skip()
+
+
+    def addWatchPattern(self, event):
+        pattern = self.txtPattern.GetValue()
+        if pattern != "":
+            listBoxCount = self.lbWatchPatterns.GetCount()
+            self.lbWatchPatterns.InsertItems([pattern], listBoxCount)
+            self.txtPattern.Clear()
+        event.Skip()
+    
+
+    def remWatchPattern(self, event):
+        self.txtPattern.SetValue(self.lbWatchPatterns.GetStringSelection())
+        self.lbInPatterns.Delete(self.lbWatchPatterns.GetSelection())
         event.Skip()
 
 
@@ -400,7 +417,8 @@ class addDirectory (wx.Dialog):
         self.cbSubdirectories.SetValue(True)
         self.rbFiles.SetValue(True)
         self.txtPattern.Clear()
-        self.lbExPatterns.Clear()
+        self.lbIgnorePatterns.Clear()
+        self.lbWatchPatterns.Clear()
 
 
     def save(self, event):
@@ -410,9 +428,10 @@ class addDirectory (wx.Dialog):
             events = self.getEvents()
             subDir = True if self.cbSubdirectories.GetValue() else False
             types = self.getTypes()
-            exPatn = ", ".join(self.lbExPatterns.GetItems())
+            exPatn = ", ".join(self.lbIgnorePatterns.GetItems())
+            watchPatn = ", ".join(self.lbWatchPatterns.GetItems())
             self.Parent.addDirectoryToList([dirPath, events, subDir, types, 
-                exPatn])
+                exPatn, watchPatn])
             self.clearAll()
         else:
             wx.MessageBox(u"Please specify a valid Directory!", 
@@ -547,7 +566,9 @@ class mainFrame(wx.Frame):
         self.lstPath.AppendTextColumn('Events', width=100)
         self.lstPath.AppendToggleColumn('Subdirectories')
         self.lstPath.AppendTextColumn('Types', width=100)
-        self.lstPath.AppendTextColumn('Exclude Patterns', width=100, 
+        self.lstPath.AppendTextColumn('Ignore Patterns', width=100, 
+            mode=dv.DATAVIEW_CELL_EDITABLE)
+        self.lstPath.AppendTextColumn('Watch Patterns', width=100, 
             mode=dv.DATAVIEW_CELL_EDITABLE)
         # Tab Control ----------------------------------------------------------
         self.tabCtrl = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, 
@@ -641,7 +662,7 @@ class mainFrame(wx.Frame):
         dirPath = self.dirPicker.GetPath()
         if dirPath != u"Please enter a valid path...":
             self.addDirectoryToList([dirPath, "New Files, Modifications", True, 
-                "Files Only", None])
+                "Files Only", None, None])
         else:
             wx.MessageBox(u"Please specify a valid Directory!", 
                 u"Infomation!", wx.OK | wx.ICON_EXCLAMATION)
@@ -753,12 +774,16 @@ class mainFrame(wx.Frame):
 
     def processRowData(self, rowData):
         watch_path = rowData[0]
-        patterns = None
         if rowData[4] != None:
             ignore_patterns = str(rowData[4]).split(', ') if ',' in rowData[4] \
-                              else None
+                              else [str(rowData[4])]
         else:
             ignore_patterns = rowData[4]
+        if rowData[5] != None:
+            patterns = str(rowData[5]).split(', ') if ',' in rowData[5] \
+                              else [str(rowData[5])]
+        else:
+            patterns = rowData[5]
         ignore_directories = True if rowData[3] == 'Files Only' else False
         case_sensitive = False
         create = True if 'New Files' in rowData[1] else False
