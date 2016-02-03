@@ -11,8 +11,6 @@ from os import path
 from os.path import expanduser
 from wx.lib.wordwrap import wordwrap
 from watchdog.observers import Observer
-# from watchdog.events import LoggingEventHandler
-# from watchdog.events import FileSystemEventHandler
 from watchdog.events import PatternMatchingEventHandler
 
 __author__ = "Kumaran S/O Murugun"
@@ -43,21 +41,23 @@ class wxLogEventHandler(PatternMatchingEventHandler):
     def process(self, event):
         # print event.src_path, ">", event.event_type, type(event)
         what = 'Directory' if event.is_directory else 'File'
-        msg=None
+
         if event.event_type == 'created' and self.evt_onCreated:
             # print what, "Created! |", event.src_path
             msg = UpdateLogEvent(logmsg="Created! | %s" % event.src_path)
-        elif event.event_type == 'modified' and self.evt_onModified:
+            wx.PostEvent(self.win, msg)
+        if event.event_type == 'modified' and self.evt_onModified:
             # print what, "Modified! |", event.src_path
             msg = UpdateLogEvent(logmsg="Modified! | %s" % event.src_path)
-        elif event.event_type == 'deleted' and self.evt_onDeleted:
+            wx.PostEvent(self.win, msg)
+        if event.event_type == 'deleted' and self.evt_onDeleted:
             # print what, "Deleted! |", event.src_path
             msg = UpdateLogEvent(logmsg="Deleted! | %s" % event.src_path)
-        elif event.event_type == 'moved' and self.evt_onRenamed:
+            wx.PostEvent(self.win, msg)
+        if event.event_type == 'moved' and self.evt_onRenamed:
             # print what, "Moved! |", event.src_path, event.dest_path
             msg = UpdateLogEvent(logmsg="Moved! | %s to %s" % 
                                  (event.src_path, event.dest_path))
-        if msg != None:
             wx.PostEvent(self.win, msg)
 
     def on_moved(self, event):
@@ -108,15 +108,6 @@ class Watcher:
         return self.running
         self.observer.stop()
 
-
-    def Run(self): pass
-        # while self.keepGoing:
-        #     event = UpdateLogEvent(logmsg="Watching %s ... %d" % (self.path, random.randint(1, 10)))
-        #     wx.PostEvent(self.win, event)
-
-        #     sleeptime = (random.random() * 2) + 0.5
-        #     time.sleep(sleeptime/4)
-        # self.running = False
 
 ################################################################################
 ## Class MyLog
@@ -286,11 +277,7 @@ class addDirectory (wx.Dialog):
         rowSizer_af.AddGrowableCol(0)
         rowSizer_af.SetFlexibleDirection(wx.BOTH)
         rowSizer_af.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
-        
-        # self.lblExPatterns = wx.StaticText(self, wx.ID_ANY, u"Exclude Patterns", 
-        #     wx.DefaultPosition, wx.DefaultSize, 0)
-        # self.lblExPatterns.Wrap(-1)
-        # rowSizer_af.Add(self.lblExPatterns, 0, wx.ALL, 5)
+
         
         lbExPatternsChoices = []
         self.lbIgnorePatterns = wx.ListBox(self, wx.ID_ANY, wx.DefaultPosition, 
@@ -347,12 +334,6 @@ class addDirectory (wx.Dialog):
     def __del__(self):
         pass    
     
-    # Virtual event handlers, overide them in your derived class
-    # def onEventChoice(self, event):
-    #     event.Skip()
-    
-    # def onTypes(self, event):
-    #     event.Skip()
 
     def addIgnorePattern(self, event):
         pattern = self.txtPattern.GetValue()
@@ -728,46 +709,15 @@ class mainFrame(wx.Frame):
         event.GetDialog().Destroy()
 
 
-    # def run(self, event):
-    #     # print event.GetId()
-    #     # print event.IsChecked()
-    #     self.threads.append(Watcher(self, "Thread1"))
-    #     # self.threads.append(Watcher(self, "Thread2"))
-    #     # self.threads.append(Watcher(self, "Thread3"))
-    #     # self.threads.append(Watcher(self, "Thread4"))
-    #     # self.threads.append(Watcher(self, "Thread5"))
-    #     # self.threads.append(Watcher(self, "Thread6"))
-    #     # self.threads.append(Watcher(self, "Thread7"))
-    #     # self.threads.append(Watcher(self, "Thread8"))
-    #     if event.IsChecked() is True:
-    #         # Run Code here
-    #         print "Running..."
-    #         # self.isrunning = True
-    #         for t in self.threads:
-    #             t.Start()
-    #     elif event.IsChecked() is False:
-    #         # Stop Code here
-    #         print "Stopped..."
-    #         # self.isrunning = False
-    #         for t in self.threads:
-    #             t.Stop()
-
-
     def getPathListData(self):
         data = []
         lsCtrlStore = self.lstPath.GetStore()
         colCount = len(self.lstPath.GetColumns()) - 1
         rowCount = lsCtrlStore.GetCount()
-        # print "Total Rows =", rowCount
         for i in range(0, rowCount):
             row = []
-            # print "Row %d ..." % i
             for colNum in range(1, colCount + 1):
                 row.append(lsCtrlStore.GetValueByRow(i, colNum))
-            # row.append(lsCtrlStore.GetValueByRow(i, 2))
-            # row.append(lsCtrlStore.GetValueByRow(i, 3))
-            # row.append(lsCtrlStore.GetValueByRow(i, 4))
-            # row.append(lsCtrlStore.GetValueByRow(i, 5))
             data.append(row)
         return data
 
