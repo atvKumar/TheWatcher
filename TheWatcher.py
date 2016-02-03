@@ -23,6 +23,9 @@ IS_WIN = wx.Platform == "__WXMSW__"
 # This creates a new Event class and a EVT binder function
 (UpdateLogEvent, EVT_UPDATE_LOG) = wx.lib.newevent.NewEvent()
 
+################################################################################
+## Class wxLogEventHandler
+################################################################################
 
 class wxLogEventHandler(PatternMatchingEventHandler):
     def __init__(self, win, patterns=None, ignore_patterns=None, 
@@ -37,6 +40,8 @@ class wxLogEventHandler(PatternMatchingEventHandler):
         self.evt_onModified = modify
         self.evt_onDeleted = delete
         self.evt_onRenamed = rename
+        # print "wxLogEventHandler >", self._ignore_patterns
+        # print "wxLogEventHandler >", self._patterns
 
     def process(self, event):
         # print event.src_path, ">", event.event_type, type(event)
@@ -44,20 +49,25 @@ class wxLogEventHandler(PatternMatchingEventHandler):
 
         if event.event_type == 'created' and self.evt_onCreated:
             # print what, "Created! |", event.src_path
-            msg = UpdateLogEvent(logmsg="Created! | %s" % event.src_path)
+            msg = UpdateLogEvent(logmsg="Created! | %s" % event.src_path, 
+                    evt_type='created', filename=path.basename(event.src_path))
             wx.PostEvent(self.win, msg)
         if event.event_type == 'modified' and self.evt_onModified:
             # print what, "Modified! |", event.src_path
-            msg = UpdateLogEvent(logmsg="Modified! | %s" % event.src_path)
+            msg = UpdateLogEvent(logmsg="Modified! | %s" % event.src_path, 
+                    evt_type='modified', filename=path.basename(event.src_path))
             wx.PostEvent(self.win, msg)
         if event.event_type == 'deleted' and self.evt_onDeleted:
             # print what, "Deleted! |", event.src_path
-            msg = UpdateLogEvent(logmsg="Deleted! | %s" % event.src_path)
+            msg = UpdateLogEvent(logmsg="Deleted! | %s" % event.src_path, 
+                    evt_type='deleted', filename=path.basename(event.src_path))
             wx.PostEvent(self.win, msg)
         if event.event_type == 'moved' and self.evt_onRenamed:
             # print what, "Moved! |", event.src_path, event.dest_path
             msg = UpdateLogEvent(logmsg="Moved! | %s to %s" % 
-                                 (event.src_path, event.dest_path))
+                                 (event.src_path, event.dest_path), 
+                                 evt_type='moved', 
+                                 filename=path.basename(event.dest_path))
             wx.PostEvent(self.win, msg)
 
     def on_moved(self, event):
@@ -84,6 +94,8 @@ class Watcher:
                  subDir=True):
         self.win = win
         self.path = watchpath
+        # self.ignore_patterns = ignore_patterns
+        # self.patterns = patterns
         self.event_handler = wxLogEventHandler(self.win, patterns, 
                                 ignore_patterns, ignore_directories, 
                                 case_sensitive, create, modify, delete, rename)
@@ -93,20 +105,22 @@ class Watcher:
 
 
     def Start(self):
-        self.keepGoing = self.running = True
+        self.running = True
         thread.start_new_thread(self.observer.start, ())
         # self.observer.start()
-        print "Thread Started..."
+        print "Thread %s Started..." % self.path
+        # print "Ignore Pattern", self.ignore_patterns
+        # print "Watch Pattern", self.patterns
 
 
     def Stop(self):
-        self.keepGoing = False
         self.running = False
+        self.observer.stop()
+        print "Thread %s Stopped..." % self.path
 
 
     def IsRunning(self):
         return self.running
-        self.observer.stop()
 
 
 ################################################################################
@@ -409,8 +423,13 @@ class addDirectory (wx.Dialog):
             events = self.getEvents()
             subDir = True if self.cbSubdirectories.GetValue() else False
             types = self.getTypes()
-            exPatn = ", ".join(self.lbIgnorePatterns.GetItems())
-            watchPatn = ", ".join(self.lbWatchPatterns.GetItems())
+            _ignore_patterns = self.lbIgnorePatterns.GetItems()
+            _watch_patterns = self.lbWatchPatterns.GetItems()
+            # print "Add Directory >", _ignore_patterns, _watch_patterns
+            exPatn = ", ".join(_ignore_patterns) if _ignore_patterns != [] \
+                        else None
+            watchPatn = ", ".join(_watch_patterns) if _watch_patterns != [] \
+                        else None
             self.Parent.addDirectoryToList([dirPath, events, subDir, types, 
                 exPatn, watchPatn])
             self.clearAll()
@@ -597,7 +616,8 @@ class mainFrame(wx.Frame):
         self.btnAdd.Bind(wx.EVT_BUTTON, self.quickAdd)
         # self.Bind(wx.EVT_TOGGLEBUTTON, self.run, self.btnRun)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.run_watchdog, self.btnRun)
-        self.Bind(EVT_UPDATE_LOG, self.OnUpdate)        
+        self.Bind(EVT_UPDATE_LOG, self.OnUpdate) 
+        # UpdateLogEvent       
 
 
     def __del__(self):
@@ -697,7 +717,14 @@ class mainFrame(wx.Frame):
         dlg.Show(True)
 
 
+    def processEvent(self, event):
+        if event.evt_type == 'created':
+            print "Sending Email now..."
+
+
     def OnUpdate(self, event):
+        # print ">", event.evt_type
+        self.processEvent(event)
         wx.LogMessage(event.logmsg)
 
 
@@ -724,6 +751,7 @@ class mainFrame(wx.Frame):
 
     def processRowData(self, rowData):
         watch_path = rowData[0]
+        # print "Line 754 rowData >", repr(rowData[4]), repr(rowData[5])
         if rowData[4] != None:
             ignore_patterns = str(rowData[4]).split(', ') if ',' in rowData[4] \
                               else [str(rowData[4])]
@@ -752,6 +780,8 @@ class mainFrame(wx.Frame):
             for i in range(0, len(lst)):
                 # print lst[i][0]
                 rowData = self.processRowData(lst[i])
+                # print "Main >", rowData[1]
+                # print "Main >", rowData[2]
                 self.threads.append(Watcher(self, *rowData))
             for t in self.threads:
                 t.Start()
@@ -759,8 +789,7 @@ class mainFrame(wx.Frame):
             for t in self.threads:
                 t.Stop()
                 self.threads = []  # Reset the threads to none.
-            print "Stopped..."
-    
+
 
 if __name__ == '__main__':
     app = wx.App(False)
