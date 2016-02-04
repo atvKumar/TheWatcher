@@ -3,16 +3,10 @@ from __versions__ import __author__, __application__, IS_OSX, IS_WINDOWS
 from os.path import expanduser
 from dlgAddDirectory import addDirectory
 from observatory import Watcher
-from watcherGUI import mainFrame
+from frmWatcher import mainFrame
 
 
 class TheWatcher(mainFrame):
-
-    def addDirectoryToList(self, record):
-        lstRowCount = self.lstPath.GetStore().GetCount()
-        newRecord = [lstRowCount] + record
-        self.lstPath.AppendItem(newRecord)
-
 
     def addDirectory(self, event):
         addDirDlg = addDirectory(self)
@@ -26,6 +20,12 @@ class TheWatcher(mainFrame):
             self.lstPath.DeleteItem(rowID)
         elif numOfRows == 1 and rowID != -1:
             self.lstPath.DeleteAllItems()
+
+
+    def addDirectoryToList(self, record):
+        lstRowCount = self.lstPath.GetStore().GetCount()
+        newRecord = [lstRowCount] + record
+        self.lstPath.AppendItem(newRecord)
 
 
     def quickAdd(self, event):
@@ -86,17 +86,6 @@ class TheWatcher(mainFrame):
         dlg.Show(True)
 
 
-    def processEvent(self, event):
-        if event.evt_type == 'created':
-            print "Sending Email now..."
-
-
-    def OnUpdate(self, event):
-        # print ">", event.evt_type
-        self.processEvent(event)
-        wx.LogMessage(event.logmsg)
-
-
     def OnFind(self, event):
         wx.LogMessage(event.GetFindString())
 
@@ -105,7 +94,18 @@ class TheWatcher(mainFrame):
         event.GetDialog().Destroy()
 
 
-    def getPathListData(self):
+    def ProcessEvent(self, event):
+        if event.evt_type == 'created':
+            print "Sending Email now..."
+
+
+    def onUpdate(self, event):
+        # print ">", event.evt_type
+        self.ProcessEvent(event)
+        wx.LogMessage(event.logmsg)
+
+
+    def GetPathListData(self):
         data = []
         lsCtrlStore = self.lstPath.GetStore()
         colCount = len(self.lstPath.GetColumns()) - 1
@@ -118,7 +118,7 @@ class TheWatcher(mainFrame):
         return data
 
 
-    def processRowData(self, rowData):
+    def ProcessRowData(self, rowData):
         watch_path = rowData[0]
         # print "Line 754 rowData >", repr(rowData[4]), repr(rowData[5])
         if rowData[4] != None:
@@ -145,10 +145,10 @@ class TheWatcher(mainFrame):
     def run_watchdog(self, event):
         if event.IsChecked():
             # Get the number of entries in Path List
-            lst = self.getPathListData()
+            lst = self.GetPathListData()
             for i in range(0, len(lst)):
                 # print lst[i][0]
-                rowData = self.processRowData(lst[i])
+                rowData = self.ProcessRowData(lst[i])
                 # print "Main >", rowData[1]
                 # print "Main >", rowData[2]
                 self.threads.append(Watcher(self, *rowData))

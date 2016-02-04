@@ -1,9 +1,7 @@
 import thread
 from watchdog.observers import Observer
-from EventHandler import wxLogEventHandler
-################################################################################
-## Class Watcher
-################################################################################
+from wxEventHandler import wxLogEventHandler
+
 
 class Watcher:
     def __init__(self, win, watchpath, patterns=None, ignore_patterns=None, 
