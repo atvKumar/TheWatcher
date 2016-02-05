@@ -4,6 +4,7 @@ from os.path import expanduser
 from dlgAddDirectory import addDirectory
 from observatory import Watcher
 from frmWatcher import mainFrame
+from Email import Email, EmailConnection
 
 
 class TheWatcher(mainFrame):
@@ -94,15 +95,19 @@ class TheWatcher(mainFrame):
         event.GetDialog().Destroy()
 
 
+    def SendEmail(self, event):
+        pass
+
+
     def ProcessEvent(self, event):
         if event.evt_type == 'created':
             print "Sending Email now..."
+            self.SendEmail(event)
 
 
     def onUpdate(self, event):
-        # print ">", event.evt_type
-        self.ProcessEvent(event)
         wx.LogMessage(event.logmsg)
+        # self.ProcessEvent(event)
 
 
     def GetPathListData(self):

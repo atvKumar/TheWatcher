@@ -1,4 +1,4 @@
-from smtplib import SMTP
+from smtplib import SMTP, SMTP_SSL
 from smtplib import SMTPException
 from mimetypes import guess_type
 from os.path import basename
@@ -102,6 +102,7 @@ class EmailConnection(object):
     def connect(self, debug):
         self.connection = SMTP(host=self.server, port=self.port)
         if debug:  # Debug Information
+            # self.debuglevel = 1
             self.connection.set_debuglevel(debug)
         # identify ourselves, prompting server for supported features
         self.connection.ehlo()
@@ -109,6 +110,7 @@ class EmailConnection(object):
         if self.connection.has_extn('STARTTLS'):
             self.connection.starttls()
             self.connection.ehlo()
+        self.connection.esmtp_features['auth'] = 'PLAIN LOGIN'
         self.connection.login(self.username, self.password)
 
     def send(self, message, from_=None, to=None, verify=False):
