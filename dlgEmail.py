@@ -8,7 +8,7 @@ class email_dialog(wx.Dialog):
 			title = u"Email Settings", pos=wx.DefaultPosition, 
 			size = wx.DefaultSize, 
 			style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
-		
+		self.parent = parent
 		self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 		
 		sizer_main = wx.BoxSizer(wx.VERTICAL)
@@ -108,16 +108,18 @@ class email_dialog(wx.Dialog):
 		self.lbl_subject.Wrap(-1)
 		sizer_BB.Add(self.lbl_subject, 0, wx.ALL, 5)
 		
-		self.tc_emailSubject = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, 
+		self.tc_emailSubject = wx.TextCtrl(self, wx.ID_ANY, 
+			"TheWatcher : {pathType} {filename} {evt_type} at {timestamp}", 
 			wx.DefaultPosition, wx.DefaultSize, 0)
 		sizer_BB.Add(self.tc_emailSubject, 1, wx.ALL|wx.EXPAND, 5)
 		
-		self.lbl_message = wx.StaticText(self, wx.ID_ANY, u"Message", 
+		self.lbl_message = wx.StaticText(self, wx.ID_ANY, u"Message:", 
 			wx.DefaultPosition, wx.DefaultSize, 0)
 		self.lbl_message.Wrap(-1)
 		sizer_BB.Add(self.lbl_message, 0, wx.ALL, 5)
 		
-		self.tc_emailMessage = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, 
+		self.tc_emailMessage = wx.TextCtrl(self, wx.ID_ANY, 
+			"{pathType} {evt_type} : {evt_src} at {timestamp}", 
 			wx.DefaultPosition, wx.Size( -1,100 ), wx.TE_MULTILINE)
 		sizer_BB.Add(self.tc_emailMessage, 1, wx.ALL|wx.EXPAND, 5)
 		
@@ -184,16 +186,49 @@ class email_dialog(wx.Dialog):
 		self.btn_Add.Bind(wx.EVT_BUTTON, self.addEmailAddress)
 		self.sizer_DCancel.Bind(wx.EVT_BUTTON, self.cancel)
 		self.sizer_DSave.Bind(wx.EVT_BUTTON, self.save)
+
+		if self.parent.emailData != None:
+			self.setData(self.parent.emailData)
 	
 	def __del__(self):
 		pass
+
 	
 	def addEmailAddress(self, event):
 		self.tc_emailTO.AppendText(self.tc_emailAddress.GetValue() + "\n")
 		self.tc_emailAddress.Clear()
-	
+
+
+	def setData(self, data):
+		""" Sets the Dialog with the given Data """
+		self.tc_smtp.SetValue(data["smtpServer"])
+		self.tc_user.SetValue(data["userName"])
+		self.tc_password.SetValue(data["password"])
+		self.cb_enableEmail.SetValue(data["sendEmail"])
+		self.tc_emailTO.SetValue(data["emailTO"])
+		self.tc_emailSubject.SetValue(data["emailSubject"])
+		self.tc_emailMessage.SetValue(data["emailMessage"])
+		self.fp_attachments.SetPath(data["attachments"])
+		self.delay.SetValue(data["delay"])
+
+
+	def getData(self):
+		""" Returns Data Retrieved from the Dialog """
+		return {"smtpServer": self.tc_smtp.GetValue(),
+				"userName": self.tc_user.GetValue(),
+				"password": self.tc_password.GetValue(),
+				"sendEmail": self.cb_enableEmail.GetValue(),
+				"emailTO": self.tc_emailTO.GetValue(),
+				"emailSubject": self.tc_emailSubject.GetValue(),
+				"emailMessage": self.tc_emailMessage.GetValue(),
+				"attachments": self.fp_attachments.GetPath(),
+				"delay": self.delay.GetValue()} 
+
+
 	def cancel(self, event):
 		event.Skip()
-	
+
+
 	def save(self, event):
-		event.Skip()
+		self.parent.emailData = self.getData()
+		self.Close()

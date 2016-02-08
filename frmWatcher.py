@@ -14,6 +14,7 @@ class mainFrame(wx.Frame):
         # self.isrunning = False   # Bool switch for RUN
         self.findData = wx.FindReplaceData()
         self.threads = []
+        self.emailData = None    # Email Settings Dialog Data Dict
         # ----------------------------------------------------------------------
         wx.Frame.__init__(self, parent, id = wx.ID_ANY, 
             title = __application__ + " " + __version__, 
@@ -138,7 +139,7 @@ class mainFrame(wx.Frame):
         # Custom wx.Log class
         self.log = MyLog(self.txtLog)  # Link to textCtrl
         wx.Log_SetActiveTarget(self.log)  # Redirect Log to textCtrl
-        self.log.SetTimestamp("%d/%m/%Y %H:%M:%S %p")
+        self.log.SetTimestamp("%d/%m/%Y %I:%M:%S %p")
         self.log.SetLogLevel(5)
         # self.log.SetVerbose(True)
 

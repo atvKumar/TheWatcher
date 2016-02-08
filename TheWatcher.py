@@ -1,4 +1,5 @@
 import wx
+import time
 from __versions__ import __author__, __application__, IS_OSX, IS_WINDOWS
 from os.path import expanduser
 from dlgAddDirectory import addDirectory
@@ -97,13 +98,17 @@ class TheWatcher(mainFrame):
 
 
     def SendEmail(self, event):
-        pass
+        if self.emailData != None:
+            # print dir(event)
+            ts = time.strftime(self.log.GetTimestamp(), 
+                time.localtime(event.GetTimestamp()))
+            print self.emailData["emailMessage"].format(pathType=event.pathType, evt_type=event.evt_type, evt_src=event.evt_src, timestamp=ts)
 
 
-    def ProcessEvent(self, event):
-        if event.evt_type == 'created':
-            print "Sending Email now..."
-            self.SendEmail(event)
+    # def ProcessEvent(self, event):
+    #     if event.evt_type == 'created':
+    #         print "Sending Email now..."
+    #         self.SendEmail(event)
 
 
     def emailSettings(self, event):
@@ -112,8 +117,10 @@ class TheWatcher(mainFrame):
 
 
     def onUpdate(self, event):
+        # theEvent = event
+        event.SetTimestamp(time.time()) #Manually set timestamp to log events
         wx.LogMessage(event.logmsg)
-        # self.ProcessEvent(event)
+        self.SendEmail(event)
 
 
     def GetPathListData(self):

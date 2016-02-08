@@ -29,23 +29,28 @@ class wxLogEventHandler(PatternMatchingEventHandler):
         if event.event_type == 'created' and self.evt_onCreated:
             # print what, "Created! |", event.src_path
             msg = UpdateLogEvent(logmsg="Created! | %s" % event.src_path, 
-                    evt_type='created', filename=path.basename(event.src_path))
+                    evt_type='created', evt_src=event.src_path, pathType=what, 
+                    filename=path.basename(event.src_path))
             wx.PostEvent(self.win, msg)
         if event.event_type == 'modified' and self.evt_onModified:
             # print what, "Modified! |", event.src_path
             msg = UpdateLogEvent(logmsg="Modified! | %s" % event.src_path, 
-                    evt_type='modified', filename=path.basename(event.src_path))
+                    evt_type='modified', evt_src=event.src_path, pathType=what,
+                    filename=path.basename(event.src_path))
             wx.PostEvent(self.win, msg)
         if event.event_type == 'deleted' and self.evt_onDeleted:
             # print what, "Deleted! |", event.src_path
             msg = UpdateLogEvent(logmsg="Deleted! | %s" % event.src_path, 
-                    evt_type='deleted', filename=path.basename(event.src_path))
+                    evt_type='deleted', evt_src=event.src_path, pathType=what,
+                    filename=path.basename(event.src_path))
             wx.PostEvent(self.win, msg)
         if event.event_type == 'moved' and self.evt_onRenamed:
             # print what, "Moved! |", event.src_path, event.dest_path
             msg = UpdateLogEvent(logmsg="Moved! | %s to %s" % 
                                  (event.src_path, event.dest_path), 
-                                 evt_type='moved', 
+                                 evt_type='moved', pathType=what,
+                                 evt_src=event.src_path, 
+                                 evt_dest=event.dest_path,
                                  filename=path.basename(event.dest_path))
             wx.PostEvent(self.win, msg)
 
