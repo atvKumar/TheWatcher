@@ -163,6 +163,7 @@ class mainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.findInLog, self.mnuLogFind)
         self.Bind(wx.EVT_MENU, self.saveLog, self.mnuLogSave)
         self.Bind(wx.EVT_MENU, self.loadLog, self.mnuLogLoad)
+        self.Bind(wx.EVT_MENU, self.emailSettings, self.mnuEmailPref)
         self.Bind(wx.EVT_MENU, self.onAbout, self.mnuAbout)
         self.lstPath.Bind(dv.EVT_DATAVIEW_COLUMN_HEADER_CLICK, 
             self.remDirectory)
@@ -221,6 +222,10 @@ class mainFrame(wx.Frame):
 
 
     def findInLog(self, event):
+        pass
+
+
+    def emailSettings(self, event):
         pass
 
 

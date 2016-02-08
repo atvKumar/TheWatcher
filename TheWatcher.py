@@ -2,6 +2,7 @@ import wx
 from __versions__ import __author__, __application__, IS_OSX, IS_WINDOWS
 from os.path import expanduser
 from dlgAddDirectory import addDirectory
+from dlgEmail import email_dialog
 from observatory import Watcher
 from frmWatcher import mainFrame
 from Email import Email, EmailConnection
@@ -103,6 +104,11 @@ class TheWatcher(mainFrame):
         if event.evt_type == 'created':
             print "Sending Email now..."
             self.SendEmail(event)
+
+
+    def emailSettings(self, event):
+        emailDlg = email_dialog(self)
+        emailDlg.Show()
 
 
     def onUpdate(self, event):
