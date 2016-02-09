@@ -209,7 +209,8 @@ class email_dialog(wx.Dialog):
 		self.tc_emailSubject.SetValue(data["emailSubject"])
 		self.tc_emailMessage.SetValue(data["emailMessage"])
 		self.fp_attachments.SetPath(data["attachments"])
-		self.delay.SetValue(data["delay"])
+		self.cb_delay.SetValue(data["delay"])
+		self.delay.SetValue(data["delayCount"])
 
 
 	def getData(self):
@@ -222,7 +223,8 @@ class email_dialog(wx.Dialog):
 				"emailSubject": self.tc_emailSubject.GetValue(),
 				"emailMessage": self.tc_emailMessage.GetValue(),
 				"attachments": self.fp_attachments.GetPath(),
-				"delay": self.delay.GetValue()} 
+				"delay": self.cb_delay.GetValue(),
+				"delayCount": self.delay.GetValue()} 
 
 
 	def cancel(self, event):

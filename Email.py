@@ -34,6 +34,7 @@ class Email(object):
         else:
             self.email['To'] = COMMASPACE.join(to)
         self.email['Subject'] = subject
+        self.email['subject'] = subject  # Case Sensitive Email-Readers
         if cc is not None:
             if not multi_cc:
                 self.email['Cc'] = cc

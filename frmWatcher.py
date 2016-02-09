@@ -15,6 +15,7 @@ class mainFrame(wx.Frame):
         self.findData = wx.FindReplaceData()
         self.threads = []
         self.emailData = None    # Email Settings Dialog Data Dict
+        self.eventCount = 0
         # ----------------------------------------------------------------------
         wx.Frame.__init__(self, parent, id = wx.ID_ANY, 
             title = __application__ + " " + __version__, 

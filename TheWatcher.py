@@ -1,5 +1,6 @@
 import wx
 import time
+import thread
 from __versions__ import __author__, __application__, IS_OSX, IS_WINDOWS
 from os.path import expanduser
 from dlgAddDirectory import addDirectory
@@ -99,16 +100,40 @@ class TheWatcher(mainFrame):
 
     def SendEmail(self, event):
         if self.emailData != None:
-            # print dir(event)
             ts = time.strftime(self.log.GetTimestamp(), 
-                time.localtime(event.GetTimestamp()))
-            print self.emailData["emailMessage"].format(pathType=event.pathType, evt_type=event.evt_type, evt_src=event.evt_src, timestamp=ts)
+                    time.localtime(event.GetTimestamp()))
+            data = self.emailData
+            data["pathType"] = event.pathType
+            data["evt_type"] = event.evt_type
+            data["evt_src"] = event.evt_src
+            data["timestamp"] = ts
+            data["filename"] = event.filename
+            # if "evt_dest" in dir(event):
+            if hasattr(event, "evt_dest"):
+                data["evt_dest"] = event.evt_dest
+            attach = None if self.emailData["attachments"] == u'' else self.emailData["attachments"]
+            email = Email(from_=self.emailData["userName"],
+                          to=self.emailData["emailTO"],  #TODO: Multiple receipt
+                          subject=self.emailData["emailSubject"].format(**data),
+                          message=self.emailData["emailMessage"].format(**data),
+                          attachments=attach)
+            # email.debug(True)
+            with EmailConnection(self.emailData["smtpServer"], 
+                                 self.emailData["userName"], 
+                                 self.emailData["password"]) as server:
+                server.send(email)
 
 
-    # def ProcessEvent(self, event):
-    #     if event.evt_type == 'created':
-    #         print "Sending Email now..."
-    #         self.SendEmail(event)
+    def checkEvent(self, event):
+        if self.emailData != None:
+            if self.emailData["sendEmail"] == True:
+                if (self.emailData["delay"] == True and 
+                    self.eventCount >= self.emailData["delayCount"]):
+                    thread.start_new_thread(self.SendEmail, (event,))
+                    # self.SendEmail(event) # Send the email
+                    self.eventCount = 0  # Reset the counter
+                    return
+                self.SendEmail(event) # Send the email
 
 
     def emailSettings(self, event):
@@ -117,10 +142,11 @@ class TheWatcher(mainFrame):
 
 
     def onUpdate(self, event):
-        # theEvent = event
+        self.eventCount += 1
         event.SetTimestamp(time.time()) #Manually set timestamp to log events
         wx.LogMessage(event.logmsg)
-        self.SendEmail(event)
+        self.checkEvent(event)
+        # self.SendEmail(event)
 
 
     def GetPathListData(self):
