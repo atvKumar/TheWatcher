@@ -5,6 +5,7 @@ from __versions__ import __author__, __application__, IS_OSX, IS_WINDOWS
 from os.path import expanduser
 from dlgAddDirectory import addDirectory
 from dlgEmail import email_dialog
+from dlgLog import log_dialog
 from observatory import Watcher
 from frmWatcher import mainFrame
 from Email import Email, EmailConnection
@@ -140,6 +141,11 @@ class TheWatcher(mainFrame):
     def emailSettings(self, event):
         emailDlg = email_dialog(self)
         emailDlg.Show()
+
+
+    def logSettings(self, event):
+        logDlg = log_dialog(self)
+        logDlg.Show()
 
 
     def onUpdate(self, event):
