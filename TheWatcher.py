@@ -111,7 +111,8 @@ class TheWatcher(mainFrame):
             # if "evt_dest" in dir(event):
             if hasattr(event, "evt_dest"):
                 data["evt_dest"] = event.evt_dest
-            attach = None if self.emailData["attachments"] == u'' else self.emailData["attachments"]
+            attach = None if self.emailData["attachments"] == u'' else \
+                     self.emailData["attachments"]
             email = Email(from_=self.emailData["userName"],
                           to=self.emailData["emailTO"],  #TODO: Multiple receipt
                           subject=self.emailData["emailSubject"].format(**data),
@@ -125,15 +126,15 @@ class TheWatcher(mainFrame):
 
 
     def checkEvent(self, event):
-        if self.emailData != None:
-            if self.emailData["sendEmail"] == True:
-                if (self.emailData["delay"] == True and 
-                    self.eventCount >= self.emailData["delayCount"]):
-                    thread.start_new_thread(self.SendEmail, (event,))
-                    # self.SendEmail(event) # Send the email
-                    self.eventCount = 0  # Reset the counter
-                    return
-                self.SendEmail(event) # Send the email
+        if self.emailData != None and self.emailData["sendEmail"] == True:
+            if (self.emailData["delay"] == True and 
+                self.eventCount >= self.emailData["delayCount"]):
+                thread.start_new_thread(self.SendEmail, (event,))
+                # self.SendEmail(event) # Send the email
+                self.eventCount = 0  # Reset the counter
+                return
+            if self.emailData["delay"] == False:
+                thread.start_new_thread(self.SendEmail, (event,))
 
 
     def emailSettings(self, event):
@@ -146,7 +147,6 @@ class TheWatcher(mainFrame):
         event.SetTimestamp(time.time()) #Manually set timestamp to log events
         wx.LogMessage(event.logmsg)
         self.checkEvent(event)
-        # self.SendEmail(event)
 
 
     def GetPathListData(self):
