@@ -8,7 +8,7 @@ class log_dialog (wx.Dialog):
 		wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"Logging", 
 			pos=wx.DefaultPosition, size=wx.DefaultSize, 
 			style=wx.DEFAULT_DIALOG_STYLE)
-		
+		self.parent = parent
 		self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 		
 		sizer_A = wx.BoxSizer(wx.VERTICAL)
@@ -45,7 +45,7 @@ class log_dialog (wx.Dialog):
 		self.cb_Timestamp.SetValue(True) 
 		sizer_AAA.Add(self.cb_Timestamp, 0, wx.ALL, 5)
 		
-		self.tc_Timestamp = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, 
+		self.tc_Timestamp = wx.TextCtrl(self, wx.ID_ANY, "%d/%m/%Y %I:%M:%S %p", 
 			wx.DefaultPosition, wx.DefaultSize, 0)
 		sizer_AAA.Add(self.tc_Timestamp, 0, wx.ALL|wx.EXPAND, 5)
 		
@@ -54,7 +54,8 @@ class log_dialog (wx.Dialog):
 		self.lbl_LogFormat.Wrap(-1)
 		sizer_AAA.Add(self.lbl_LogFormat, 0, wx.ALL, 5)
 		
-		self.tc_LogFormat = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, 
+		self.tc_LogFormat = wx.TextCtrl(self, wx.ID_ANY, 
+			"%(asctime)-15s - %(levelname)s - %(message)s", 
 			wx.DefaultPosition, wx.DefaultSize, 0)
 		sizer_AAA.Add(self.tc_LogFormat, 0, wx.ALL|wx.EXPAND, 5)
 		
@@ -79,7 +80,7 @@ class log_dialog (wx.Dialog):
 		
 		self.pg_LogDetails = pg.PropertyGrid(self, wx.ID_ANY, wx.DefaultPosition, 
 			wx.DefaultSize, wx.propgrid.PG_BOLD_MODIFIED|\
-			wx.propgrid.PG_HIDE_MARGIN|wx.propgrid.PG_STATIC_LAYOUT)
+			wx.propgrid.PG_HIDE_MARGIN) #|wx.propgrid.PG_STATIC_LAYOUT
 		self.pgItem_Name = self.pg_LogDetails.Append(pg.StringProperty(u"Name", 
 			u"Name")) 
 		self.pgItem_Size = self.pg_LogDetails.Append(pg.StringProperty(u"Size", 
@@ -93,7 +94,7 @@ class log_dialog (wx.Dialog):
 		sizer_A.Add(sizer_AA, 1, wx.EXPAND, 5)
 		
 		sizer_AB = wx.StdDialogButtonSizer()
-		self.sizer_ABSave = wx.Button(self, wx.ID_SAVE )
+		self.sizer_ABSave = wx.Button(self, wx.ID_SAVE)
 		sizer_AB.AddButton(self.sizer_ABSave)
 		self.sizer_ABCancel = wx.Button(self, wx.ID_CANCEL)
 		sizer_AB.AddButton(self.sizer_ABCancel)
@@ -121,13 +122,25 @@ class log_dialog (wx.Dialog):
 	
 	# Virtual event handlers, overide them in your derived class
 	def checkOldLogs(self, event):
+		# self.pg_LogDetails.SetPropertyValue("Name", "Kumaran")
 		event.Skip()
+
 	
 	def clearLogs(self, event):
 		event.Skip()
+
 	
 	def cancel(self, event):
 		event.Skip()
+
 	
 	def save(self, event):
-		event.Skip()
+		data = {"log" : self.cb_Logging.GetValue(),
+				"path" : self.dp_LogPath.GetPath(),
+				"timestamp" : self.cb_Timestamp.GetValue(),
+				"ts_format" : self.tc_Timestamp.GetValue(),
+				"log_format" : self.tc_LogFormat.GetValue()}
+		self.parent.logData = data
+		self.parent.setupFileLogging()
+		self.Close()
+

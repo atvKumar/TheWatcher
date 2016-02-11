@@ -16,6 +16,7 @@ class mainFrame(wx.Frame):
         self.threads = []
         self.emailData = None    # Email Settings Dialog Data Dict
         self.eventCount = 0
+        self.logData = None
         # ----------------------------------------------------------------------
         wx.Frame.__init__(self, parent, id = wx.ID_ANY, 
             title = __application__ + " " + __version__, 
@@ -160,7 +161,7 @@ class mainFrame(wx.Frame):
         # ------------------------------------------------------ Binding Events
         self.Bind(wx.EVT_MENU, self.addDirectory, self.mnuAddDir)
         self.Bind(wx.EVT_MENU, self.remDirectory, self.mnuRemDir)
-        self.Bind(wx.EVT_TEXT, self.onLog)
+        self.Bind(wx.EVT_TEXT, self.onGuiLogUpdate)
         self.Bind(wx.EVT_MENU, self.clearLog, self.mnuLogClear)
         self.Bind(wx.EVT_MENU, self.findInLog, self.mnuLogFind)
         self.Bind(wx.EVT_MENU, self.saveLog, self.mnuLogSave)
@@ -174,7 +175,8 @@ class mainFrame(wx.Frame):
         # self.Bind(wx.EVT_TOGGLEBUTTON, self.run, self.btnRun)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.run_watchdog, self.btnRun)
         self.Bind(EVT_UPDATE_LOG, self.onUpdate) 
-        # UpdateLogEvent       
+        # UpdateLogEvent 
+        self.setupFileLogging()      
 
 
     def __del__(self):
@@ -212,7 +214,7 @@ class mainFrame(wx.Frame):
         pass
 
 
-    def onLog(self, event):
+    def onGuiLogUpdate(self, event):
         pass
 
 
@@ -233,6 +235,10 @@ class mainFrame(wx.Frame):
 
 
     def logSettings(self, event):
+        pass
+
+
+    def setupFileLogging(self):
         pass
 
 

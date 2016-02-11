@@ -1,8 +1,9 @@
 import wx
 import time
 import thread
+import logging
 from __versions__ import __author__, __application__, IS_OSX, IS_WINDOWS
-from os.path import expanduser
+from os.path import expanduser, join as joinPath
 from dlgAddDirectory import addDirectory
 from dlgEmail import email_dialog
 from dlgLog import log_dialog
@@ -49,7 +50,7 @@ class TheWatcher(mainFrame):
         self.log_switch = False
 
 
-    def onLog(self, event):
+    def onGuiLogUpdate(self, event):
         if self.log_switch is False:
             numOfLines = self.txtLog.GetNumberOfLines()
             if numOfLines >= self.log_lenght:
@@ -126,7 +127,7 @@ class TheWatcher(mainFrame):
                 server.send(email)
 
 
-    def checkEvent(self, event):
+    def checkEmail(self, event):
         if self.emailData != None and self.emailData["sendEmail"] == True:
             if (self.emailData["delay"] == True and 
                 self.eventCount >= self.emailData["delayCount"]):
@@ -148,11 +149,38 @@ class TheWatcher(mainFrame):
         logDlg.Show()
 
 
-    def onUpdate(self, event):
+    def setupFileLogging(self):
+        self.fileLogger = logging.getLogger(__application__)
+        self.fileLogger.setLevel(logging.DEBUG)
+        if self.logData != None:
+            log_format = self.logData["log_format"]
+            logfilename = joinPath(self.logData["path"], "TheWatcher.log")
+            if self.logData["timestamp"] == True:
+                timestamp = self.logData["ts_format"]
+            else:
+                timestamp = "%d/%m/%Y %I:%M:%S %p"
+        else:
+            log_format = "%(asctime)-15s - %(levelname)s - %(message)s"
+            logfilename = "log/TheWatcher.log"
+            timestamp = "%d/%m/%Y %I:%M:%S %p"
+        self.loggingFileHandler = logging.FileHandler(logfilename)
+        fmt = logging.Formatter(log_format, datefmt=timestamp)
+        self.loggingFileHandler.setFormatter(fmt)
+        self.fileLogger.addHandler(self.loggingFileHandler)
+
+
+    def LogToFile(self, event):
+        if self.logData != None:
+            if self.logData["log"] == True:
+                self.fileLogger.info("%s %s" % (event.pathType, event.logmsg))
+
+
+    def onUpdate(self, event):  #TODO: Less Checks, Speed, Single Log Function.
         self.eventCount += 1
         event.SetTimestamp(time.time()) #Manually set timestamp to log events
-        wx.LogMessage(event.logmsg)
-        self.checkEvent(event)
+        wx.LogMessage(event.logmsg)  # Log to Gui
+        self.LogToFile(event)  # Log to File
+        self.checkEmail(event)  # Send Email
 
 
     def GetPathListData(self):
