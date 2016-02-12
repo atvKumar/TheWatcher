@@ -161,7 +161,7 @@ class TheWatcher(mainFrame):
                 timestamp = "%d/%m/%Y %I:%M:%S %p"
         else:
             log_format = "%(asctime)-15s - %(levelname)s - %(message)s"
-            logfilename = "log/TheWatcher.log"
+            logfilename = "TheWatcher.log"
             timestamp = "%d/%m/%Y %I:%M:%S %p"
         self.loggingFileHandler = logging.FileHandler(logfilename)
         fmt = logging.Formatter(log_format, datefmt=timestamp)

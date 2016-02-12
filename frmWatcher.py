@@ -176,7 +176,7 @@ class mainFrame(wx.Frame):
         self.Bind(wx.EVT_TOGGLEBUTTON, self.run_watchdog, self.btnRun)
         self.Bind(EVT_UPDATE_LOG, self.onUpdate) 
         # UpdateLogEvent 
-        self.setupFileLogging()      
+        # self.setupFileLogging()
 
 
     def __del__(self):

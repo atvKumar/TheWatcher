@@ -1,5 +1,33 @@
 import wx
 import wx.propgrid as pg
+from __versions__ import IS_OSX, IS_WINDOWS
+from os import stat, remove
+from os.path import isfile, join as joinPath
+
+
+def getFileSize(filepath):
+    """Calculate size of a file size in KB/MB/GB/TB"""
+    file_bytes = stat(filepath).st_size
+    if IS_OSX:
+        file_blocks = stat(filepath).st_blocks
+        if file_bytes < 1024 * 1024: #KB
+            return str(round(file_blocks * 512e-3, 1)) + ' KB'
+        elif file_bytes < 1024 * 1024 * 1024: #MB
+            return str(round(file_blocks * 512e-6, 1 )) + ' MB'
+        elif file_bytes < 1024 * 1024 * 1024 * 1024: #GB
+            return str(round(file_blocks * 512e-6 / 1000, 2)) + ' GB'
+        elif file_bytes < 1024 * 1024 * 1024 * 1024 * 1024 : #TB
+            return str(round(file_blocks * 512e-6 / 1000 / 1000, 2 )) + ' TB'
+    elif IS_WINDOWS:
+        file_blocks = 0
+        if file_bytes < 1024 * 1024: #KB
+            return str(round(file_bytes / 1024.0, 1)) + ' KB'
+        elif file_bytes < 1024 * 1024 * 1024: #MB
+            return str(round(file_bytes / 1024 / 1024.0, 1)) + ' MB'
+        elif file_bytes < 1024 * 1024 * 1024 * 1024: #GB
+            return str(round(file_bytes / 1024 / 1024 / 1024.0, 2)) + ' GB'
+        elif file_bytes < 1024 * 1024 * 1024 * 1024 * 1024 : #TB
+            return str(round(file_bytes / 1024 / 1024 / 1024 / 1024.0, 2))+' TB'
 
 
 class log_dialog (wx.Dialog):
@@ -122,12 +150,21 @@ class log_dialog (wx.Dialog):
 	
 	# Virtual event handlers, overide them in your derived class
 	def checkOldLogs(self, event):
-		# self.pg_LogDetails.SetPropertyValue("Name", "Kumaran")
-		event.Skip()
+		path = self.dp_LogPath.GetPath()
+		if path:
+			logFile = joinPath(path, "TheWatcher.log")
+			if isfile(logFile):
+				self.pg_LogDetails.SetPropertyValue("Name", "TheWatcher.log")
+				# size = "%d %s" % (stat(logFile).st_size, "bytes")
+				self.pg_LogDetails.SetPropertyValue("Size", getFileSize(logFile))
 
 	
 	def clearLogs(self, event):
-		event.Skip()
+		path = self.dp_LogPath.GetPath()
+		if path:
+			logFile = joinPath(path, "TheWatcher.log")
+			if isfile(logFile):
+				remove(logFile)
 
 	
 	def cancel(self, event):
