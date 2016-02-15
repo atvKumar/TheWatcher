@@ -7,6 +7,7 @@ from os.path import expanduser, join as joinPath
 from dlgAddDirectory import addDirectory
 from dlgEmail import email_dialog
 from dlgLog import log_dialog
+from dlgCmd import command_dialog
 from observatory import Watcher
 from frmWatcher import mainFrame
 from Email import Email, EmailConnection
@@ -147,6 +148,11 @@ class TheWatcher(mainFrame):
     def logSettings(self, event):
         logDlg = log_dialog(self)
         logDlg.Show()
+
+
+    def cmdSettings(self, event):
+        cmdDlg = command_dialog(self)
+        cmdDlg.Show()
 
 
     def setupFileLogging(self):
