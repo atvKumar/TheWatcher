@@ -139,6 +139,7 @@ class log_dialog (wx.Dialog):
 		self.Centre(wx.BOTH)
 		
 		# Connect Events
+		self.Bind(wx.EVT_INIT_DIALOG, self.dlgInit)
 		self.btn_CheckLogs.Bind(wx.EVT_BUTTON, self.checkOldLogs)
 		self.btn_ClearLogs.Bind(wx.EVT_BUTTON, self.clearLogs)
 		self.sizer_ABCancel.Bind(wx.EVT_BUTTON, self.cancel)
@@ -146,6 +147,16 @@ class log_dialog (wx.Dialog):
 	
 	def __del__(self):
 		pass
+
+
+	def dlgInit(self, event):
+		if self.parent.logData != None:
+			# data = self.parent.logData
+			self.cb_Logging.SetValue(self.parent.logData["log"])
+			self.dp_LogPath.SetPath(self.parent.logData["path"])
+			self.cb_Timestamp.SetValue(self.parent.logData["timestamp"])
+			self.tc_Timestamp.SetValue(self.parent.logData["ts_format"])
+			self.tc_LogFormat.SetValue(self.parent.logData["log_format"])
 	
 	
 	# Virtual event handlers, overide them in your derived class

@@ -7,7 +7,7 @@ class command_dialog (wx.Dialog):
 		wx.Dialog.__init__ (self, parent, id = wx.ID_ANY, title = u"Commands", 
 			pos = wx.DefaultPosition, size = wx.DefaultSize, 
 			style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-		
+		self.parent = parent
 		self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 		
 		sizer_A = wx.BoxSizer(wx.VERTICAL)
@@ -89,11 +89,22 @@ class command_dialog (wx.Dialog):
 	
 	# Virtual event handlers, overide them in your derived class
 	def dlgInit(self, event):
-		event.Skip()
+		if self.parent.cmdData != None:
+			self.fp_Command.SetPath(self.parent.cmdData["cmd"])
+			self.tc_Parameters.SetValue(self.parent.cmdData["flags"])
+			self.cb_Quiet.SetValue(self.parent.cmdData["shell"])
+			self.cb_Sequence.SetValue(self.parent.cmdData["seq"])
+	
 	
 	def cancel(self, event):
 		event.Skip()
 	
+
 	def save(self, event):
-		event.Skip()
+		data = {"cmd": self.fp_Command.GetPath(),
+				"flags": self.tc_Parameters.GetValue(),
+				"shell": self.cb_Quiet.GetValue(),
+				"seq": self.cb_Sequence.GetValue()}
+		self.parent.cmdData = data
+		self.Close()
 	

@@ -17,6 +17,7 @@ class mainFrame(wx.Frame):
         self.emailData = None    # Email Settings Dialog Data Dict
         self.eventCount = 0
         self.logData = None
+        self.cmdData = None
         # ----------------------------------------------------------------------
         wx.Frame.__init__(self, parent, id = wx.ID_ANY, 
             title = __application__ + " " + __version__, 

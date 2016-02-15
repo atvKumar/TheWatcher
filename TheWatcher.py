@@ -1,7 +1,4 @@
-import wx
-import time
-import thread
-import logging
+import wx, time, thread, logging, subprocess
 from __versions__ import __author__, __application__, IS_OSX, IS_WINDOWS
 from os.path import expanduser, join as joinPath
 from dlgAddDirectory import addDirectory
@@ -181,11 +178,32 @@ class TheWatcher(mainFrame):
                 self.fileLogger.info("%s %s" % (event.pathType, event.logmsg))
 
 
+    def CallCmd(self, event):
+        if self.cmdData != None:
+            if self.cmdData["cmd"]:
+                cmd = []
+                data = {}
+                cmd.append(self.cmdData["cmd"])
+                if self.cmdData["flags"]:
+                    data["evt_src"] = event.evt_src
+                    data["filename"] = event.filename
+                    if hasattr(event, "evt_dest"):
+                        data["evt_dest"] = event.evt_dest
+                    flags = str(self.cmdData["flags"].format(**data))
+                    # if IS_OSX:
+                    #     flags = flags.replace(" ", "\\ ")
+                    flags = [expanduser(x) for x in flags.split(",")]
+                    cmd = cmd + flags
+                # print " ".join(cmd)
+                subprocess.call(cmd)
+
+
     def onUpdate(self, event):  #TODO: Less Checks, Speed, Single Log Function.
         self.eventCount += 1
         event.SetTimestamp(time.time()) #Manually set timestamp to log events
         wx.LogMessage(event.logmsg)  # Log to Gui
         self.LogToFile(event)  # Log to File
+        self.CallCmd(event)  # Call External Cmd
         self.checkEmail(event)  # Send Email
 
 
