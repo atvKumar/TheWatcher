@@ -77,7 +77,9 @@ class command_dialog (wx.Dialog):
 		sizer_A.Fit(self)
 		
 		self.Centre(wx.BOTH)
-		
+		self.cb_Quiet.SetValue(True)
+		self.cb_Sequence.SetValue(True)
+		self.cb_Sequence.Disable()
 		# Connect Events
 		self.Bind(wx.EVT_INIT_DIALOG, self.dlgInit)
 		self.sizer_CCancel.Bind(wx.EVT_BUTTON, self.cancel)
@@ -95,12 +97,16 @@ class command_dialog (wx.Dialog):
 			self.cb_Quiet.SetValue(self.parent.cmdData["shell"])
 			self.cb_Sequence.SetValue(self.parent.cmdData["seq"])
 	
-	
+
 	def cancel(self, event):
 		event.Skip()
 	
 
 	def save(self, event):
+		if self.fp_Command.GetPath() == u'':
+			self.parent.cmdData = None
+			self.Close()
+			return
 		data = {"cmd": self.fp_Command.GetPath(),
 				"flags": self.tc_Parameters.GetValue(),
 				"shell": self.cb_Quiet.GetValue(),

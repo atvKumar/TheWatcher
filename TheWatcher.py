@@ -190,12 +190,15 @@ class TheWatcher(mainFrame):
                     if hasattr(event, "evt_dest"):
                         data["evt_dest"] = event.evt_dest
                     flags = str(self.cmdData["flags"].format(**data))
-                    # if IS_OSX:
-                    #     flags = flags.replace(" ", "\\ ")
+                    if not self.cmdData["shell"] and IS_OSX:
+                        flags = flags.replace(" ", "\\ ")
                     flags = [expanduser(x) for x in flags.split(",")]
                     cmd = cmd + flags
                 # print " ".join(cmd)
-                subprocess.call(cmd)
+                if self.cmdData["shell"]:
+                    subprocess.call(cmd)  #True Hide Shell=False Default
+                else:
+                    subprocess.call(" ".join(cmd), shell=True)  #Show Shell
 
 
     def onUpdate(self, event):  #TODO: Less Checks, Speed, Single Log Function.
