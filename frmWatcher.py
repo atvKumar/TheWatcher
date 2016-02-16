@@ -189,11 +189,11 @@ class mainFrame(wx.Frame):
         info = wx.AboutDialogInfo()
         info.Name = __application__ + " " + __version__
         info.Copyright = "(C) 2015, Angel Broadcasting Network Pte. Ltd."
-        info.Description = wordwrap("A Simple Program to Watch Folders and "
-            "Files. Complete with Logging and Notification Systems built in."
-            " Able to chain commands and call external programs.", 340, 
+        info.Description = wordwrap("An Open-Source Clone of DirectoryMonitor,"
+            " Built upon Watchdog & wxPython. Enjoy! - Kumar", 340, 
             wx.ClientDC(self))
-        info.WebSite = ("http://www.github.com/atvKumar", __author__)
+        info.WebSite = ("http://www.github.com/atvKumar/TheWatcher", 
+            "TheWatcher's Project WebSite")
         info.Developers = [__author__]
         info.Licence = "Apache License v2.0"
         wx.AboutBox(info)

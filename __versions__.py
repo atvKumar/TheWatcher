@@ -4,7 +4,7 @@ from wx import version
 
 __author__ = "Kumaran S/O Murugun"
 __application__ = "The Watcher"
-__version__ = "2.0 (Beta)"
+__version__ = "1.0"
 
 PYTHON_VERSION = sys.version_info[0:2]
 PyVersion = float(str(PYTHON_VERSION[0])+'.'+str(PYTHON_VERSION[1]))
