@@ -7,7 +7,7 @@ from dlgLog import log_dialog
 from dlgCmd import command_dialog
 from observatory import Watcher
 from frmWatcher import mainFrame
-from Email import Email, EmailConnection
+from mkEmail import Email, EmailConnection
 
 
 class TheWatcher(mainFrame):
