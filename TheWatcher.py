@@ -60,7 +60,7 @@ class TheWatcher(mainFrame):
         
         if IS_OSX:
             defaultPath = expanduser("~/Desktop")
-        if IS_WIN:
+        if IS_WINDOWS:
             defaultPath = expanduser("~")
         
         logFileDlg = wx.DirDialog(self, "Location...", defaultPath)
@@ -193,12 +193,17 @@ class TheWatcher(mainFrame):
                     if not self.cmdData["shell"] and IS_OSX:
                         flags = flags.replace(" ", "\\ ")
                     flags = [expanduser(x) for x in flags.split(",")]
+                    if IS_WINDOWS:
+                        flags = [x.replace("\\", "\\\\") for x in flags]
                     cmd = cmd + flags
                 # print " ".join(cmd)
                 if self.cmdData["shell"]:
                     subprocess.call(cmd)  #True Hide Shell=False Default
                 else:
-                    subprocess.call(" ".join(cmd), shell=True)  #Show Shell
+                    if IS_WINDOWS:
+                        subprocess.call(cmd, shell=True)
+                    else:
+                        subprocess.call(" ".join(cmd), shell=True)  #Show Shell
 
 
     def onUpdate(self, event):  #TODO: Less Checks, Speed, Single Log Function.
